@@ -53,7 +53,7 @@ textures or VDBs, etc.
     - index.usda
     - purpose [folder]
         - fragment [folder]
-            - index.usda    
+            - index.usda  
             - payload.usda [only for model and surface]
             - data [folder]
                 - extra files...
@@ -67,7 +67,7 @@ When working on a specific task in the defined DCC, we want to be able to export
 
 E.g.: when working on a modelling task, a new `model fragment` will need to be exported/published and this can be used to overwrite the existing files.
 
-Publishing means committing and pushing new files to the main git repo in the working branch, updating the `CHANGELOG.md` with the notes of the new version. 
+Publishing means committing and pushing new files to the main git repo in the working branch, updating the `CHANGELOG.md` with the notes of the new version.
 
 A merge-request will submit the work for review.
 

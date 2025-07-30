@@ -1,12 +1,13 @@
 #!/bin/env python
 
-import sys
-sys.dont_write_bytecode = True
-import subprocess
-
 import os
+import subprocess
+import sys
+
 import pipe_globals
 from pxr import Usd, UsdGeom, UsdRender
+
+sys.dont_write_bytecode = True
 
 
 def main(args):
@@ -28,7 +29,9 @@ def main(args):
 
     renderer = "GL"
     purpose = "proxy"
-    render_jpg_filename = os.path.join(renders_folder, f"{input_shot}_{purpose}_{renderer}_rgba.####.jpg")
+    render_jpg_filename = os.path.join(
+        renders_folder, f"{input_shot}_{purpose}_{renderer}_rgba.####.jpg"
+    )
 
     # open the stage to find all necessary details for rendering
     shot_stage = Usd.Stage.Open(shot_filepath)
@@ -37,17 +40,19 @@ def main(args):
     frameend = shot_stage.GetEndTimeCode()
     fps = shot_stage.GetFramesPerSecond()
     # overridden by inputs ?
-    input_framestart = pipe_globals.get_value_from_args(args,"-fs","--framestart")
+    input_framestart = pipe_globals.get_value_from_args(args, "-fs", "--framestart")
     if input_framestart != "":
         framestart = int(input_framestart)
-    input_frameend = pipe_globals.get_value_from_args(args,"-fe","--frameend")
+    input_frameend = pipe_globals.get_value_from_args(args, "-fe", "--frameend")
     if input_frameend != "":
         frameend = int(input_frameend)
-    
+
     # find rendersettings
     rendersettings_prim = UsdRender.Settings.GetStageRenderSettings(shot_stage)
     # are we overriding the rendersettings ?
-    input_rendersettings_primpath = pipe_globals.get_value_from_args(args,"-rs","--rendersettings")
+    input_rendersettings_primpath = pipe_globals.get_value_from_args(
+        args, "-rs", "--rendersettings"
+    )
     if input_rendersettings_primpath != "":
         rendersettings_prim = shot_stage.GetPrimAtPath(input_rendersettings_primpath)
     # last chance is to find the first rendersettings prim in this shot
@@ -60,7 +65,9 @@ def main(args):
     if not rendersettings_prim:
         # we need to create a snapshot file for overrides and we are going to render that one
         render_filepath = snapshot_filepath
-        shot_stage = pipe_globals.stage_begin(snapshot_filepath, start=framestart, end=frameend, fps=fps)
+        shot_stage = pipe_globals.stage_begin(
+            snapshot_filepath, start=framestart, end=frameend, fps=fps
+        )
         # sublayer original shot file
         shot_stage.GetRootLayer().subLayerPaths.append(shot_filepath)
         # search for the first camera prim and add it to the rendersettings
@@ -73,14 +80,24 @@ def main(args):
             print("ERROR camera not found in input shot file")
             exit(1)
         # create default render products
-        rendervar_prim = pipe_globals.create_rendervar(shot_stage, aov_name="rgba", aov_source="rgba", aov_format="")
+        rendervar_prim = pipe_globals.create_rendervar(
+            shot_stage, aov_name="rgba", aov_source="rgba", aov_format=""
+        )
         # NOTE: usdrecord with storm don't use RenderProduct for output images
         #       we are going to pass the filename-pattern directly to usdrecord
         default_resolution = [1024, 768]
-        renderproduct_prim = pipe_globals.create_renderproduct(shot_stage, product_name="rgba", camera_prim=camera_prim, product_filepath=render_jpg_filename, resolution=default_resolution)
+        renderproduct_prim = pipe_globals.create_renderproduct(
+            shot_stage,
+            product_name="rgba",
+            camera_prim=camera_prim,
+            product_filepath=render_jpg_filename,
+            resolution=default_resolution,
+        )
         pipe_globals.add_var_to_product(rendervar_prim, renderproduct_prim)
-        rendersettings_prim = pipe_globals.create_rendersettings(shot_stage, camera_prim=camera_prim)
-        pipe_globals.add_product_to_rendersettings( renderproduct_prim, rendersettings_prim )
+        rendersettings_prim = pipe_globals.create_rendersettings(
+            shot_stage, camera_prim=camera_prim
+        )
+        pipe_globals.add_product_to_rendersettings(renderproduct_prim, rendersettings_prim)
         # save snapshot file
         pipe_globals.stage_end(shot_stage)
 
@@ -98,5 +115,6 @@ def main(args):
     print(usdrecord_args)
     subprocess.run(usdrecord_args, shell=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(sys.argv)

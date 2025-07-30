@@ -32,7 +32,7 @@ The main deliverable will be a set of `OpenUSD` files for the assets, cameras, l
 
 We want to leverage `OpenUSD`'s composition arcs to enable non-destructive workflows, as it would happen in a proper VFX Pipeline, with well defined tasks and deliverables that compose together in the renderable shot file.
 
-The asset-structure is a variation of the original structure provided by the OpenUSD Assets WorkingGroup (wg-usd-assets), 
+The asset-structure is a variation of the original structure provided by the OpenUSD Assets WorkingGroup (wg-usd-assets),
 
 ## Version tracking
 
@@ -57,5 +57,3 @@ It might be meaningless initially (camera is empty, no animation, etc), but over
 Artists update the fragments, as needed by their tasks, and then those will be merged in the main branch of the git repo, so that the assets and shots will always point to the latest fragments.
 
 More details in the assets and shots READMEs.
-
-
