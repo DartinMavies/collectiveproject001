@@ -1,11 +1,26 @@
+""" """
+
 import math
 import os
-import pathlib
+from pathlib import Path
+from typing import Optional, Union
 
 from pxr import Gf, Sdf, Usd, UsdGeom, UsdRender, UsdShade
 
 
-def stage_begin(filename, start=1.0, end=1.0, fps=24.0):
+def stage_begin(
+    filename: str, start: float = 1.0, end: float = 1.0, fps: float = 24.0
+) -> Usd.Stage:
+    """
+
+    Args:
+        filename:
+        start:
+        end:
+        fps:
+    Returns:
+        Usd.Stage:
+    """
     layer = Sdf.Layer.CreateNew(filename, args={"format": "usda"})
     stage = Usd.Stage.Open(layer)
     stage.SetStartTimeCode(start)
@@ -17,22 +32,55 @@ def stage_begin(filename, start=1.0, end=1.0, fps=24.0):
     return stage
 
 
-def stage_end(stage):
+def stage_end(stage: Usd.Stage) -> None:
+    """
+
+    Args:
+        stage:
+
+    Returns:
+        None
+    """
     stage.GetRootLayer().Save()
 
 
 # For Asset Paths, use POSIX-style paths (/), which work in USD on Windows (but not the reverse)
-def anchor_path(path, root_path):
+def anchor_path(path: str, root_path: str) -> Path:
+    """
+
+    Args:
+        path:
+        root_path:
+
+    Returns:
+        Path:
+    """
     # NOTE: pathlib.Path.relpath() supports walk_up kwarg in 3.12+
-    return pathlib.Path(os.path.relpath(path, os.path.dirname(root_path))).as_posix()
+    return Path(os.path.relpath(path, os.path.dirname(root_path))).as_posix()
 
 
 # For un-anchored Asset Path identifiers (e.g. assetInfo), assume relative to show root
-def get_identifier_from_filename(asset_filename):
-    return pathlib.Path(asset_filename).relative_to(pathlib.Path(get_show_folder())).as_posix()
+def get_identifier_from_filename(asset_filename: str) -> Path:
+    """
+
+    Args:
+        asset_filename:
+
+    Returns:
+        Path:
+    """
+    return Path(asset_filename).relative_to(Path(get_show_folder())).as_posix()
 
 
-def get_or_create_world_prim(stage):
+def get_or_create_world_prim(stage: Usd.Stage) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+
+    Returns:
+        Usd.Prim:
+    """
     root_path = Sdf.Path.absoluteRootPath
     world_prim_path = root_path.AppendChild("World")
     world_prim = stage.GetPrimAtPath(world_prim_path)
@@ -43,7 +91,15 @@ def get_or_create_world_prim(stage):
     return world_prim
 
 
-def get_or_create_cameras_prim(stage):
+def get_or_create_cameras_prim(stage: Usd.Stage) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+
+    Returns:
+        Usd.Prim:
+    """
     world_prim = get_or_create_world_prim(stage)
     cameras_prim_path = world_prim.GetPath().AppendChild("Cameras")
     cameras_prim = stage.GetPrimAtPath(cameras_prim_path)
@@ -53,14 +109,31 @@ def get_or_create_cameras_prim(stage):
     return cameras_prim
 
 
-def get_default_camera_settings():
+def get_default_camera_settings() -> dict[str, dict[str, Union[Sdf.ValueTypeNames, float]]]:
+    """
+
+    Returns:
+        dict[str, dict[str, Union[Sdf.ValueTypeNames, float]]]:
+    """
     return {
         "shutter:open": {"type": Sdf.ValueTypeNames.Double, "value": 0.0},
         "shutter:close": {"type": Sdf.ValueTypeNames.Double, "value": 0.0},
     }
 
 
-def create_default_camerarig(stage, camera_settings={}, resolution=[1024, 768]):
+def create_default_camerarig(
+    stage: Usd.Stage, camera_settings: dict = {}, resolution: list[int] = [1024, 768]
+) -> tuple[Usd.Prim, Usd.Prim]:
+    """
+
+    Args:
+        stage:
+        camera_settings:
+        resolution:
+
+    Returns:
+        tuple[Usd.Prim, ]
+    """
     # force-create default camera as root-xform with any camera-rig underneath
     # NOTE: Do we need a full rig ? Maybe not, could simplify this.
     cameras_prim = get_or_create_cameras_prim(stage)
@@ -86,15 +159,30 @@ def create_default_camerarig(stage, camera_settings={}, resolution=[1024, 768]):
 
 
 def make_turntable(
-    stage,
-    camera_xform_prim,
-    camera_prim,
-    frame_begin=1.0,
-    frame_end=120.0,
-    bbox=None,
-    bbox_dist_multiplier=2.0,
-    elevation=10,
-):
+    stage: Usd.Stage,
+    camera_xform_prim: Usd.Prim,
+    camera_prim: Usd.Prim,
+    frame_begin: float = 1.0,
+    frame_end: float = 120.0,
+    bbox: Optional[UsdGeom.BBoxCache] = None,
+    bbox_dist_multiplier: float = 2.0,
+    elevation: int = 10,
+) -> bool:
+    """
+
+    Args:
+        stage:
+        camera_xform_prim:
+        camera_prim:
+        frame_begin:
+        frame_end:
+        bbox:
+        bbox_dist_multiplier:
+        elevation:
+
+    Returns:
+        bool:
+    """
     if bbox is None:
         # scene bounds
         bbox = UsdGeom.BBoxCache(
@@ -129,26 +217,44 @@ def make_turntable(
     return True
 
 
-def add_product_to_rendersettings(product_prim, rendersettings_prim):
+def add_product_to_rendersettings(product_prim: Usd.Prim, rendersettings_prim: Usd.Prim) -> None:
+    """
+
+    Args:
+        product_prim:
+        rendersettings_prim:
+
+    Returns:
+        None
+    """
     if rendersettings_prim is not None and product_prim is not None:
         rendersettings_prim.GetProductsRel().AddTarget(product_prim.GetPath())
 
 
-def add_var_to_product(var_prim, product_prim):
+def add_var_to_product(var_prim: Usd.Prim, product_prim: Usd.Prim) -> None:
+    """
+
+    Args:
+        var_prim:
+        product_prim:
+
+    Returns:
+        None
+    """
     if product_prim is not None and var_prim is not None:
         product_prim.GetOrderedVarsRel().AddTarget(var_prim.GetPath())
 
 
 def create_renderproduct(
-    stage,
-    product_name="",
-    product_filepath="",
-    driver_parameters={},
-    camera_prim=None,
-    resolution=[1024, 768],
-    ndc=(0, 0, 1, 1),
-    par=1.0,
-):
+    stage: Usd.Prim,
+    product_name: str = "",
+    product_filepath: str = "",
+    driver_parameters: dict = {},
+    camera_prim: Optional[Usd.Prim] = None,
+    resolution: list[int] = [1024, 768],
+    ndc: tuple[int, int, int, int] = (0, 0, 1, 1),
+    par: float = 1.0,
+) -> Usd.Prim:
 
     prim = UsdRender.Product.Define(stage, "/Render/Products/{name}".format(name=product_name))
     prim.GetAspectRatioConformPolicyAttr().Set("expandAperture")
@@ -176,11 +282,22 @@ def create_renderproduct(
 
 
 def create_rendervar(
-    stage,
-    aov_name="",
-    aov_source="",
-    aov_format="",
-):
+    stage: Usd.Stage,
+    aov_name: str = "",
+    aov_source: str = "",
+    aov_format: str = "",
+) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+        aov_name:
+        aov_source:
+        aov_format:
+
+    Returns:
+        Usd.Prim:
+    """
 
     prim = UsdRender.Var.Define(stage, "/Render/Products/Vars/{name}".format(name=aov_name))
 
@@ -200,15 +317,30 @@ def create_rendervar(
 
 
 def create_rendersettings(
-    stage,
-    prim_path="/Render/rendersettings",
-    resolution=[1024, 768],
-    camera_prim=None,
-    ndc=(0, 0, 1, 1),
-    par=1.0,
-    purposes=["default"],
-    render_settings={},
-):
+    stage: Usd.Stage,
+    prim_path: str = "/Render/rendersettings",
+    resolution: list[int] = [1024, 768],
+    camera_prim: Optional[Usd.Prim] = None,
+    ndc: tuple[int, int, int, int] = (0, 0, 1, 1),
+    par: float = 1.0,
+    purposes: list[str] = ["default"],
+    render_settings: dict = {},  # TODO: I don't think this is what is intended.
+) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+        prim_path:
+        resolution:
+        camera_prim:
+        ndc:
+        par:
+        purposes:
+        render_settings:
+
+    Returns:
+        Usd.Prim:
+    """
     prim = None
     prim = UsdRender.Settings.Define(stage, prim_path)
 
@@ -230,7 +362,25 @@ def create_rendersettings(
     return prim
 
 
-def create_root_prim(stage, kind="", asset_name="", asset_filename="", asset_version=""):
+def create_root_prim(
+    stage: Usd.Stage,
+    kind: str = "",
+    asset_name: str = "",
+    asset_filename: str = "",
+    asset_version: str = "",
+) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+        kind:
+        asset_name:
+        asset_filename:
+        asset_version:
+
+    Returns:
+        Usd.Prim:
+    """
     root_path = Sdf.Path.absoluteRootPath
     asset_root_path = root_path.AppendChild("main")
     asset_root_prim = UsdGeom.Xform.Define(stage, asset_root_path)
@@ -247,7 +397,15 @@ def create_root_prim(stage, kind="", asset_name="", asset_filename="", asset_ver
     return asset_root_prim.GetPrim()
 
 
-def override_root_prim(stage):
+def override_root_prim(stage: Usd.Stage) -> Usd.Prim:
+    """
+
+    Args:
+        stage:
+
+    Returns:
+        Usd.Prim:
+    """
     root_path = Sdf.Path.absoluteRootPath
     asset_root_path = root_path.AppendChild("main")
     asset_root_prim = stage.OverridePrim(asset_root_path)
@@ -279,30 +437,80 @@ def get_value_from_args(args, flag_short, flag_long):
     return result
 
 
-def mkdir_safe(path):
+def mkdir_safe(path: str) -> None:
+    """
+
+    Args:
+        path:
+
+    Returns:
+        None
+    """
     try:
         os.mkdir(path)
     except Exception:
         pass
 
 
-def get_subfolder(root_path, subfolder):
+def get_subfolder(root_path: str, subfolder: str) -> str:
+    """
+
+    Args:
+        root_path:
+        subfolder:
+
+    Returns:
+        str:
+    """
     folder = os.path.join(root_path, subfolder)
     mkdir_safe(folder)
     return folder
 
 
-def keep_folder(folder):
+def keep_folder(folder: str) -> None:
+    """
+
+    Args:
+        folder:
+
+    Returns:
+        None
+    """
     f = open("{}/.keep".format(folder), "w")
     f.close()
 
 
-def get_show_folder():
+def get_show_folder() -> str:
+    """
+
+    Returns:
+        str:
+    """
     show_root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
     return show_root
 
 
-def make_reviewer_per_purpose(stage, purpose, textures, framestart, frameend, resolution):
+def make_reviewer_per_purpose(
+    stage: Usd.Stage,
+    purpose: str,
+    textures: str,
+    framestart: float,
+    frameend: float,
+    resolution: list[int],
+) -> None:
+    """
+
+    Args:
+        stage:
+        purpose:
+        textures:
+        framestart:
+        frameend:
+        resolution:
+
+    Returns:
+        None
+    """
     purpose_prim = UsdGeom.Scope.Define(stage, f"/{purpose}")
     purpose_prim.GetPrim().GetAttribute("purpose").Set(purpose)
     geo_scope = UsdGeom.Scope.Define(stage, purpose_prim.GetPath().AppendChild("geo"))
