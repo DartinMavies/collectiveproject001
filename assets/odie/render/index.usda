@@ -13,3 +13,7 @@
     timeCodesPerSecond = 24
     upAxis = "Y"
 )
+
+def Xform "main"
+{
+}
