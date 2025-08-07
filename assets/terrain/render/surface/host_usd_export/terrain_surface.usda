@@ -1,0 +1,62 @@
+#usda 1.0
+(
+    endTimeCode = 1224
+    framesPerSecond = 24
+    metersPerUnit = 0.01
+    startTimeCode = 1224
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+over "main"
+{
+    over "proxy"
+    {
+        def Scope "mtl"
+        {
+            def Material "terrain_mtl" (
+                prepend inherits = </__class_mtl__/terrain_mtl>
+            )
+            {
+                int inputs:inputnum = 1
+                token outputs:mtlx:surface.connect = </main/proxy/mtl/terrain_mtl/mtlxmaterial.outputs:surface>
+
+                def NodeGraph "mtlxmaterial"
+                {
+                    token outputs:surface.connect = </main/proxy/mtl/terrain_mtl/mtlxmaterial/mtlxsurface1.outputs:out>
+
+                    def Shader "mtlxsurface1"
+                    {
+                        uniform token info:id = "ND_surface"
+                        string inputs:bsdf.connect = </main/proxy/mtl/terrain_mtl/mtlxmaterial/mtlxlayer2.outputs:out>
+                        token outputs:out
+                    }
+
+                    def Shader "mtlxlayer2"
+                    {
+                        uniform token info:id = "ND_layer_bsdf"
+                        string inputs:base.connect = </main/proxy/mtl/terrain_mtl/mtlxmaterial/mtlxburley_diffuse_bsdf1.outputs:out>
+                        string inputs:top.connect = </main/proxy/mtl/terrain_mtl/mtlxmaterial/mtlxdielectric_bsdf1.outputs:out>
+                        token outputs:out
+                    }
+
+                    def Shader "mtlxdielectric_bsdf1"
+                    {
+                        uniform token info:id = "ND_dielectric_bsdf"
+                        float2 inputs:roughness = (0.2, 0.2)
+                        token outputs:out
+                    }
+
+                    def Shader "mtlxburley_diffuse_bsdf1"
+                    {
+                        uniform token info:id = "ND_burley_diffuse_bsdf"
+                        color3f inputs:color = (0.08425131, 0.0975151, 0.105)
+                        float inputs:roughness = 0.2
+                        token outputs:out
+                    }
+                }
+            }
+        }
+    }
+}
+
