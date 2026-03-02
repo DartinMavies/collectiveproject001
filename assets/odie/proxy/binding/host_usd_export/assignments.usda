@@ -1,0 +1,101 @@
+#usda 1.0
+(
+    defaultPrim = "main"
+    endTimeCode = 1
+    framesPerSecond = 24
+    metersPerUnit = 0.01
+    startTimeCode = 1
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+over "main"
+{
+    over "proxy"
+    {
+        over "geo"
+        {
+            over "body"
+            {
+                uniform token subsetFamily:materialBind:familyType = "nonOverlapping"
+
+                over "Body_Primary" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/body_primary_mtl>
+                }
+
+                over "Body_Secondary" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/body_secondary_mtl>
+                }
+
+                over "Eye_Pupil_Border" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/pupil_border_mtl>
+                }
+
+                over "Body_Tertiary" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/body_tertiary_mtl>
+                }
+
+                over "Eye_Pupil_Center" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/pupil_center_mtl>
+                }
+
+                over "Eye_Sclera" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/sclera_mtl>
+                }
+
+                over "Eye_Iris" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    uniform token familyName = "materialBind"
+                    rel material:binding = </main/proxy/mtl/iris_mtl>
+                }
+            }
+        }
+    }
+
+    over "render"
+    {
+        over "geo"
+        {
+            over "body" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </main/render/mtl/odie_mtl>
+
+                over "odie_glass_face" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    rel material:binding = </main/render/mtl/odie_glass_face_mtl>
+                }
+            }
+        }
+    }
+}
+
